@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>КиноВыбор — Фильм</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      margin: 0;
+    }
+    
+    .movie-page {
+      max-width: 1200px;
+      margin: 120px auto 40px;
+      padding: 20px;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      box-sizing: border-box;
+      padding: 20px 40px;
+      border-radius: 0 0 20px 20px;
+      background: rgba(255,255,255,0.98);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 {
+      font-size: 42px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #ff3b30, #ff8a00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+      cursor: pointer;
+    }
+    
+    .header-left {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .header-right {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .auth-btn-big, .main-btn-big {
+      padding: 16px 32px;
+      font-size: 19px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .auth-btn-big { 
+      background: #1a73e8; 
+      color: white; 
+    }
+    .auth-btn-big:hover { 
+      background: #0d47a1; 
+      transform: translateY(-3px); 
+    }
+    
+    .back-btn-container {
+      text-align: left;
+      margin-bottom: 40px;
+      margin-top: 20px;
+    }
+    
+    .back-btn {
+      background: #ff8a00;
+      padding: 18px 36px;
+      font-size: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(255,140,0,0.3);
+      border: none;
+      cursor: pointer;
+      color: white;
+    }
+    
+    /* Одна колонка - только постер */
+    .movie-content {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 50px;
+      align-items: start;
+    }
+    
+    @media (max-width: 900px) {
+      .movie-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+    }
+    
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    .movie-poster {
+      width: 100%;
+      height: 520px;
+      object-fit: cover;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    /* Правая колонка с основной информацией */
+    .right-column {
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+    }
+    
+    .movie-title {
+      font-size: 48px;
+      margin: 0 0 20px;
+      background: linear-gradient(90deg,#ff3b30,#ff8a00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .movie-meta {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .rating {
+      font-size: 26px;
+      padding: 12px 24px;
+      background: #f8f9fa;
+      border-radius: 16px;
+    }
+    
+    .favorite-btn-page {
+      background: #e91e63;
+      color: white;
+    }
+    
+    .favorite-btn-page:hover {
+      background: #c2185b;
+      transform: translateY(-3px);
+    }
+    
+    .favorite-btn-page.active {
+      background: #ff5252;
+      box-shadow: 0 8px 25px rgba(233, 30, 99, 0.3);
+    }
+    
+    .overview {
+      font-size: 18px;
+      line-height: 1.8;
+      color: #444;
+      margin-bottom: 40px;
+    }
+    
+    /* Детали фильма */
+    .movie-details-section {
+      margin: 25px 0;
+      padding: 25px;
+      background: #f8f9fa;
+      border-radius: 12px;
+    }
+    
+    .movie-details-section h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+      font-size: 22px;
+    }
+    
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .detail-item {
+      margin-bottom: 8px;
+    }
+    
+    .detail-label {
+      font-weight: bold;
+      color: #333;
+      display: inline-block;
+      min-width: 80px;
+    }
+    
+    .detail-value {
+      color: #555;
+    }
+    
+    /* Трейлер */
+    .trailer-section {
+      margin-top: 40px;
+    }
+    
+    .trailer-title {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    
+    .trailer-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .trailer-iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    .no-trailer {
+      text-align: center;
+      font-size: 20px;
+      color: #e91e63;
+      margin-top: 20px;
+    }
+    
+    /* КНОПКИ ССЫЛОК - РЯДОМ */
+    .links-container {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+    
+    .info-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(90deg, #ff6600, #ff3300);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
+      flex: 1;
+      min-width: 250px;
+      text-align: center;
+      justify-content: center;
+    }
+    
+    .watch-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(90deg, #00c853, #009624);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(0, 200, 83, 0.3);
+      flex: 1;
+      min-width: 250px;
+      text-align: center;
+      justify-content: center;
+    }
+    
+    .info-link:hover, .watch-link:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    
+    .info-link:hover {
+      background: linear-gradient(90deg, #ff5500, #ff2200);
+    }
+    
+    .watch-link:hover {
+      background: linear-gradient(90deg, #00b248, #008c1a);
+    }
+    
+    .info-link i, .watch-link i {
+      font-size: 18px;
+    }
+    
+    /* Информация о ссылках */
+    .links-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .links-info {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .link-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    
+    .link-card h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .link-card p {
+      margin: 0;
+      color: #666;
+      font-size: 13px;
+    }
+    
+    /* Информация о полной информации */
+    .full-info-note {
+      background: #f0f7ff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 25px;
+      text-align: center;
+      border-left: 4px solid #1a73e8;
+    }
+    
+    .full-info-note h4 {
+      margin-top: 0;
+      color: #1a73e8;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .full-info-note p {
+      color: #555;
+      margin: 10px 0 0 0;
+      font-size: 14px;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .movie-page {
+        margin-top: 100px;
+      }
+      
+      .header {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+      
+      .header h1 {
+        font-size: 32px;
+      }
+      
+      .header-left, .header-right {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .auth-btn-big {
+        padding: 14px 24px;
+        font-size: 17px;
+      }
+      
+      .movie-title {
+        font-size: 36px;
+      }
+      
+      .movie-poster {
+        height: 400px;
+      }
+      
+      .right-column {
+        padding: 25px;
+      }
+      
+      .info-link, .watch-link {
+        padding: 12px 20px;
+        font-size: 15px;
+        min-width: 200px;
+      }
+      
+      .links-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .movie-title {
+        font-size: 30px;
+      }
+      
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .info-link, .watch-link {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="movie-page">
+    <header class="header">
+      <div class="header-left">
+        <button onclick="location.href='/about'" class="auth-btn-big" style="background:#ff8a00; min-width:140px;">
+          О проекте
+        </button>
+      </div>
+
+      <h1 onclick="location.href='/'">КиноВыбор</h1>
+
+      <div class="header-right">
+        <button id="pageFavoritesBtn" class="auth-btn-big" style="background:#e91e63; display:none;">
+          Мои избранные (<span id="pageFavCount">0</span>)
+        </button>
+
+        <button id="pageProfileBtn" onclick="location.href='/profile'" 
+                class="auth-btn-big" 
+                style="background:#4CAF50; display:none;">
+          <i class="fas fa-user"></i> Профиль
+        </button>
+
+        <div id="pageAuthSection">
+          <button onclick="location.href='/'" class="auth-btn-big">Войти</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="back-btn-container">
+      <button onclick="history.back()" class="back-btn">
+        ← Назад к поиску
+      </button>
+    </div>
+
+    <!-- СТРУКТУРА: две колонки -->
+    <div class="movie-content">
+      <!-- ЛЕВАЯ КОЛОНКА: Только постер -->
+      <div class="left-column">
+        <img id="poster" class="movie-poster" src="" alt="Постер фильма">
+        
+        <!-- Информация о полных данных -->
+        <div class="full-info-note">
+          <h4><i class="fas fa-info-circle"></i> Дополнительная информация</h4>
+          <p>Для полных данных об актерах, рецензиях и просмотра фильма используйте ссылки справа.</p>
+        </div>
+      </div>
+
+      <!-- ПРАВАЯ КОЛОНКА: Вся остальная информация -->
+      <div class="right-column">
+        <h1 id="title" class="movie-title">Загрузка...</h1>
+
+        <div class="movie-meta">
+          <div class="rating">★ <span id="rating">0.0</span></div>
+          <p style="font-size:24px; color:#666;"><strong id="year">—</strong></p>
+          
+          <button id="favoriteBtn" class="favorite-btn-page auth-btn-big" style="display:none;">
+            <i class="fas fa-heart"></i> Добавить в избранное
+          </button>
+        </div>
+
+        <p id="overview" class="overview">Загрузка...</p>
+        
+        <!-- Детали фильма -->
+        <div class="movie-details-section">
+          <h3>📋 Детали фильма</h3>
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Жанры:</span>
+              <span class="detail-value" id="genres">Загрузка...</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Страны:</span>
+              <span class="detail-value" id="countries">Загрузка...</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Год:</span>
+              <span class="detail-value" id="yearDetail">—</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Рейтинг:</span>
+              <span class="detail-value" id="ratingDetail">—</span>
+            </div>
+          </div>
+          
+          <!-- Дополнительная информация -->
+          <div id="extraInfo" style="display:none; margin-top:15px;"></div>
+        </div>
+
+        <!-- Трейлер -->
+        <div class="trailer-section">
+          <h2 class="trailer-title">🎬 Трейлер</h2>
+          <div class="trailer-container">
+            <iframe id="trailerIframe" class="trailer-iframe" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+          </div>
+          <p id="noTrailer" class="no-trailer" style="display:none;">Трейлер не найден</p>
+          
+          <!-- ДВЕ КНОПКИ ССЫЛОК РЯДОМ -->
+          <div class="links-container">
+            <a id="kinopoiskInfoLink" href="#" target="_blank" class="info-link">
+              <i class="fas fa-info-circle"></i> Полная информация на КиноПоиске
+            </a>
+            
+            <a id="watchFilmLink" href="#" target="_blank" class="watch-link">
+              <i class="fas fa-play-circle"></i> Смотреть фильм онлайн
+            </a>
+          </div>
+          
+          <!-- Информация о ссылках -->
+          <div class="links-info">
+            <div class="link-card">
+              <h4><i class="fas fa-users"></i> Актеры и детали</h4>
+              <p>Полный список актеров, режиссеров, рецензии, рейтинги и другая информация о фильме</p>
+            </div>
+            
+            <div class="link-card">
+              <h4><i class="fas fa-film"></i> Просмотр фильма</h4>
+              <p>Смотрите фильм онлайн на популярных стриминговых платформах</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const movieId = location.pathname.split('/').pop();
+  
+  // ПОЛУЧАЕМ РЕЙТИНГ ИЗ URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlRating = urlParams.get('rating');
+  
+  let token = localStorage.getItem('token') || '';
+  let favorites = [];
+
+  // УЛУЧШЕННАЯ функция для исправления рейтинга
+  function fixRating(rating) {
+    console.log('fixRating получил:', rating, 'тип:', typeof rating);
+    
+    // Если рейтинг не определен, null или пустая строка
+    if (rating === undefined || rating === null) {
+      console.log('Рейтинг не определен, возвращаем 0');
+      return 0;
+    }
+    
+    // Если это строка, пробуем преобразовать
+    let numRating;
+    if (typeof rating === 'string') {
+      if (rating === '') {
+        console.log('Пустая строка, возвращаем 0');
+        return 0;
+      }
+      numRating = parseFloat(rating);
+    } else {
+      numRating = rating;
+    }
+    
+    // Если не получилось преобразовать
+    if (isNaN(numRating)) {
+      console.log('Не число, возвращаем 0');
+      return 0;
+    }
+    
+    console.log('Числовой рейтинг:', numRating);
+    
+    // Если рейтинг больше 10 (вероятно в процентах), делим на 10
+    if (numRating > 10 && numRating <= 100) {
+      console.log(`⚠️ Аномальный рейтинг ${numRating}, делим на 10 → ${numRating / 10}`);
+      return numRating / 10;
+    }
+    
+    // Если рейтинг меньше 0, возвращаем 0
+    if (numRating < 0) {
+      return 0;
+    }
+    
+    return numRating;
+  }
+
+  // Инициализация авторизации
+  function initAuth() {
+    if (token) {
+      document.getElementById('pageAuthSection').style.display = 'none';
+      document.getElementById('pageFavoritesBtn').style.display = 'flex';
+      document.getElementById('pageProfileBtn').style.display = 'flex';
+      document.getElementById('favoriteBtn').style.display = 'flex';
+      loadFavorites();
+    } else {
+      document.getElementById('pageAuthSection').style.display = 'flex';
+      document.getElementById('pageFavoritesBtn').style.display = 'none';
+      document.getElementById('pageProfileBtn').style.display = 'none';
+      document.getElementById('favoriteBtn').style.display = 'none';
+    }
+    
+    document.getElementById('pageFavoritesBtn').onclick = () => location.href = '/favorites';
+  }
+
+  // Загрузка избранных фильмов
+  async function loadFavorites() {
+    if (!token) return;
+    
+    try {
+      const response = await fetch('/api/favorites', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        favorites = await response.json();
+        updateFavoriteButton();
+        document.getElementById('pageFavCount').textContent = favorites.length;
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки избранных:', err);
+    }
+  }
+
+  // Обновление состояния кнопки избранного
+  function updateFavoriteButton() {
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    if (!favoriteBtn) return;
+    
+    const isFavorite = favorites.includes(parseInt(movieId));
+    favoriteBtn.innerHTML = isFavorite 
+      ? '<i class="fas fa-heart"></i> Удалить из избранного'
+      : '<i class="fas fa-heart"></i> Добавить в избранное';
+    
+    if (isFavorite) {
+      favoriteBtn.classList.add('active');
+    } else {
+      favoriteBtn.classList.remove('active');
+    }
+  }
+
+  // Обработчик кнопки избранного
+  async function toggleFavorite() {
+    if (!token) {
+      location.href = '/';
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ movieId: parseInt(movieId) })
+      });
+
+      if (!response.ok) throw new Error('Ошибка сервера');
+
+      favorites = await response.json();
+      updateFavoriteButton();
+      document.getElementById('pageFavCount').textContent = favorites.length;
+      
+    } catch (err) {
+      console.error('Ошибка при обновлении избранного:', err);
+    }
+  }
+
+  // Функция для поиска фильма онлайн
+  function generateWatchLink(movieTitle, movieYear) {
+    const searchQuery = encodeURIComponent(`${movieTitle} ${movieYear} смотреть онлайн`);
+    
+    // Популярные стриминговые сервисы
+    const services = [
+      `https://www.ivi.ru/search/?q=${searchQuery}`,
+      `https://www.kinopoisk.ru/index.php?kp_query=${searchQuery}`,
+      `https://www.okko.tv/search/${searchQuery}`,
+      `https://more.tv/search?query=${searchQuery}`,
+      `https://www.start.ru/search?q=${searchQuery}`
+    ];
+    
+    return services[0];
+  }
+
+  // Загрузка дополнительной информации о фильме
+  async function loadExtraInfo() {
+    try {
+      const extraResponse = await fetch(`/api/movie/${movieId}/extra`);
+      
+      if (!extraResponse.ok) {
+        throw new Error(`HTTP error! status: ${extraResponse.status}`);
+      }
+      
+      const extra = await extraResponse.json();
+      
+      // Жанры
+      if (extra.genres && Array.isArray(extra.genres) && extra.genres.length > 0) {
+        const genresText = extra.genres.map(g => {
+          return g.genre || g.name || 'Неизвестно';
+        }).join(', ');
+        document.getElementById('genres').textContent = genresText;
+      } else {
+        document.getElementById('genres').textContent = '—';
+      }
+      
+      // Страны
+      if (extra.countries && Array.isArray(extra.countries) && extra.countries.length > 0) {
+        const countriesText = extra.countries.map(c => {
+          return c.country || c.name || 'Неизвестно';
+        }).join(', ');
+        document.getElementById('countries').textContent = countriesText;
+      } else {
+        document.getElementById('countries').textContent = '—';
+      }
+      
+      // Рейтинг детальный - используем рейтинг из URL если есть
+      let ratingValue = extra.rating;
+      if (urlRating && parseFloat(urlRating) > 0) {
+        ratingValue = urlRating;
+      }
+      
+      if (ratingValue) {
+        const fixedRating = fixRating(ratingValue);
+        document.getElementById('ratingDetail').textContent = fixedRating.toFixed(1) + '/10';
+      } else {
+        document.getElementById('ratingDetail').textContent = '—';
+      }
+      
+      // Дополнительная информация
+      const extraInfoEl = document.getElementById('extraInfo');
+      
+      if (extra.isSeries) {
+        extraInfoEl.style.display = 'block';
+        let extraHTML = '<h3>📺 Информация о сериале</h3>';
+        
+        if (extra.totalSeries) {
+          extraHTML += `<div class="detail-item"><span class="detail-label">Всего серий:</span><span class="detail-value">${extra.totalSeries}</span></div>`;
+        }
+        
+        if (extra.seriesLength) {
+          extraHTML += `<div class="detail-item"><span class="detail-label">Длина серии:</span><span class="detail-value">${extra.seriesLength} мин.</span></div>`;
+        }
+        
+        if (extra.ageRating) {
+          extraHTML += `<div class="detail-item"><span class="detail-label">Возраст:</span><span class="detail-value">${extra.ageRating.replace('age', '')}+</span></div>`;
+        }
+        
+        if (extra.ratingImdb) {
+          const fixedImdb = fixRating(extra.ratingImdb);
+          extraHTML += `<div class="detail-item"><span class="detail-label">IMDb:</span><span class="detail-value">${fixedImdb.toFixed(1)}/10</span></div>`;
+        }
+        
+        extraInfoEl.innerHTML = extraHTML;
+      } else if (extra.filmLength) {
+        extraInfoEl.style.display = 'block';
+        let extraHTML = `
+          <h3>🎬 Дополнительно</h3>
+          <div class="detail-item">
+            <span class="detail-label">Длительность:</span>
+            <span class="detail-value">${extra.filmLength} мин.</span>
+          </div>`;
+        
+        if (extra.ageRating) {
+          extraHTML += `
+            <div class="detail-item">
+              <span class="detail-label">Возраст:</span>
+              <span class="detail-value">${extra.ageRating.replace('age', '')}+</span>
+            </div>`;
+        }
+        
+        if (extra.ratingImdb) {
+          const fixedImdb = fixRating(extra.ratingImdb);
+          extraHTML += `
+            <div class="detail-item">
+              <span class="detail-label">IMDb:</span>
+              <span class="detail-value">${fixedImdb.toFixed(1)}/10</span>
+            </div>`;
+        }
+        
+        extraInfoEl.innerHTML = extraHTML;
+      }
+      
+    } catch (err) {
+      console.error('Ошибка загрузки дополнительной информации:', err.message);
+      document.getElementById('genres').textContent = '—';
+      document.getElementById('countries').textContent = '—';
+    }
+  }
+
+  // Загрузка основной информации о фильме
+async function loadMovie() {
+  try {
+    const response = await fetch(`/api/movie/${movieId}`);
+    if (!response.ok) throw new Error('Фильм не найден');
+    
+    const movie = await response.json();
+    
+    console.log('📦 ПОЛНЫЙ ОТВЕТ СЕРВЕРА:', movie);
+    console.log('📌 РЕЙТИНГ ИЗ URL:', urlRating);
+    
+    document.title = `КиноВыбор — ${movie.title || 'Фильм'}`;
+    document.getElementById('title').textContent = movie.title || 'Без названия';
+    
+    const year = movie.release_date ? movie.release_date.substring(0,4) : '—';
+    document.getElementById('year').textContent = year;
+    document.getElementById('yearDetail').textContent = year;
+    
+    // ИСПОЛЬЗУЕМ РЕЙТИНГ ИЗ URL
+    let finalRating = movie.vote_average;
+    
+    if (urlRating && urlRating !== '0' && urlRating !== 'null' && urlRating !== 'undefined') {
+      console.log('✅ Найден рейтинг в URL:', urlRating);
+      finalRating = parseFloat(urlRating);
+    }
+    
+    console.log('🎯 vote_average из API:', movie.vote_average);
+    console.log('🎯 finalRating перед fixRating:', finalRating);
+    
+    const fixedRating = fixRating(finalRating);
+    console.log('✨ Итоговый рейтинг после fixRating:', fixedRating);
+    
+    // Убеждаемся, что это число и форматируем
+    if (typeof fixedRating === 'number' && !isNaN(fixedRating)) {
+      document.getElementById('rating').textContent = fixedRating.toFixed(1);
+    } else {
+      document.getElementById('rating').textContent = '0.0';
+    }
+    
+    document.getElementById('overview').textContent = movie.overview || 'Описание отсутствует';
+
+    const poster = movie.poster_path 
+      ? `/proxy-poster?path=${encodeURIComponent(movie.poster_path)}`
+      : 'https://via.placeholder.com/350x520/f5f5f5/666666?text=Постер+скоро';
+    document.getElementById('poster').src = poster;
+    
+    // НАСТРОЙКА ССЫЛОК
+const kinopoiskInfoLink = document.getElementById('kinopoiskInfoLink');
+const watchFilmLink = document.getElementById('watchFilmLink');
+
+kinopoiskInfoLink.href = `https://www.kinopoisk.ru/film/${movieId}/`;
+
+// Убираем автоматический переход по ссылке
+watchFilmLink.removeAttribute('href');
+
+// Добавляем обработчик клика для кнопки "Смотреть фильм онлайн"
+watchFilmLink.addEventListener('click', function(e) {
+  e.preventDefault();
+  const title = document.getElementById('title').textContent;
+  const year = document.getElementById('year').textContent;
+  showWatchOptions(title, year);
+});
+    document.getElementById('favoriteBtn').onclick = toggleFavorite;
+
+    // Загружаем дополнительную информацию
+    await loadExtraInfo();
+    
+    // Загрузка трейлера
+    const query = encodeURIComponent(`${movie.title} официальный трейлер русский`);
+    fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=AIzaSyBpolGTR5LEi8TlBNpsIOY7TwYbsJpma_0`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.items && data.items.length > 0) {
+          const videoId = data.items[0].id.videoId;
+          document.getElementById('trailerIframe').src = `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=0&controls=1&modestbranding=1`;
+        } else {
+          document.getElementById('noTrailer').style.display = 'block';
+        }
+      })
+      .catch(() => {
+        document.getElementById('noTrailer').style.display = 'block';
+      });
+      
+  } catch (err) {
+    console.error('❌ Ошибка загрузки фильма:', err);
+    document.getElementById('title').textContent = 'Ошибка загрузки фильма';
+    document.getElementById('overview').textContent = 'Не удалось загрузить данные. Попробуйте позже.';
+    document.getElementById('poster').src = 'https://via.placeholder.com/350x520/f5f5f5/666666?text=Ошибка';
+    
+    const kinopoiskInfoLink = document.getElementById('kinopoiskInfoLink');
+    const watchFilmLink = document.getElementById('watchFilmLink');
+    
+    kinopoiskInfoLink.href = `https://www.kinopoisk.ru/film/${movieId}/`;
+    watchFilmLink.removeAttribute('href');
+  }
+}
+
+  // Инициализация при загрузке страницы
+  document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
+    loadMovie();
+  });
+  // Функция для показа модального окна с выбором кинотеатра
+function showWatchOptions(movieTitle, movieYear) {
+  // Создаем модальное окно
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(10px);
+  `;
+  
+  // Формируем поисковый запрос
+  const searchQuery = encodeURIComponent(`${movieTitle} ${movieYear} фильм смотреть онлайн`);
+  
+  // Прямая ссылка на Яндекс.Видео с поиском
+  const yandexVideoUrl = `https://yandex.ru/video/search?text=${searchQuery}`;
+  
+  modal.innerHTML = `
+    <div style="
+      background: white;
+      padding: 40px;
+      border-radius: 24px;
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    ">
+      <h2 style="font-size: 32px; margin-bottom: 20px; background: linear-gradient(90deg,#ff3b30,#ff8a00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        ${movieTitle}
+      </h2>
+      <p style="font-size: 18px; color: #666; margin-bottom: 30px;">
+        Нажмите на кнопку ниже чтобы найти фильм
+      </p>
+      
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <a href="${yandexVideoUrl}" 
+           target="_blank"
+           style="
+             background: linear-gradient(90deg, #ff6600, #ff3300);
+             color: white;
+             padding: 18px 24px;
+             border-radius: 16px;
+             text-decoration: none;
+             font-size: 18px;
+             font-weight: bold;
+             transition: all 0.3s;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             gap: 10px;
+           "
+           onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 30px rgba(255,102,0,0.4)';"
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+          <i class="fas fa-play" style="font-size: 24px;"></i> 
+          Смотреть на Яндекс.Видео
+        </a>
+        
+        <p style="color: #999; font-size: 14px; margin-top: 10px;">
+          * Будут показаны результаты поиска со всех популярных кинотеатров
+        </p>
+      </div>
+      
+      <button onclick="this.closest('div[style*=\\'position: fixed\\']').remove()"
+              style="
+                margin-top: 30px;
+                padding: 14px 30px;
+                background: #f0f0f0;
+                color: #333;
+                border: none;
+                border-radius: 12px;
+                font-size: 16px;
+                cursor: pointer;
+                font-weight: bold;
+              ">
+        Закрыть
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+</script>
+</body>
+</html>

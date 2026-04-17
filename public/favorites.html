@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>КиноВыбор — Мои избранные</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      margin: 0;
+    }
+    .favorites-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .favorites-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .empty-message {
+      text-align: center;
+      padding: 80px 20px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+    }
+    .empty-message i {
+      font-size: 80px;
+      color: #ff3b30;
+      opacity: 0.3;
+      margin-bottom: 20px;
+    }
+    .empty-message h2 {
+      margin-top: 20px;
+      color: #999;
+      font-size: 28px;
+    }
+    .empty-message p {
+      color: #777;
+      margin-top: 15px;
+      font-size: 18px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+    
+    /* БОЛЬШЕ НЕТ СТИЛЕЙ ДЛЯ КНОПКИ! */
+    
+    .loading {
+      text-align: center;
+      padding: 60px;
+      font-size: 20px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="favorites-container">
+    <div class="favorites-header">
+      <h1 style="font-size:42px; background:linear-gradient(90deg,#ff3b30,#ff8a00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+        Мои избранные фильмы
+      </h1>
+      <div style="display:flex; gap:15px;">
+        <button onclick="location.href='/profile'" class="auth-btn-big" style="background:#4CAF50;">
+          <i class="fas fa-user"></i> Мой профиль
+        </button>
+        <button onclick="location.href='/'" class="main-btn-big">
+          ← На главную
+        </button>
+      </div>
+    </div>
+
+    <div id="favoritesList" class="results"></div>
+
+    <div id="emptyMessage" style="display:none;" class="empty-message">
+      <i class="fas fa-heart-broken"></i>
+      <h2>Пока нет избранных фильмов</h2>
+      <p>
+        Чтобы добавить фильм в избранное, найдите его на главной странице<br>
+        и нажмите на сердечко ❤️ в правом верхнем углу карточки фильма.
+      </p>
+      <!-- НЕТ КНОПКИ "Найти фильмы"! -->
+    </div>
+
+    <div id="loadingMessage" class="loading">
+      <i class="fas fa-spinner fa-spin" style="font-size:40px; margin-bottom:20px; color:#ff8a00;"></i>
+      <p>Загрузка ваших избранных фильмов...</p>
+    </div>
+  </div>
+
+  <script>
+  // Проверяем авторизацию
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    alert('Для просмотра избранных необходимо войти в аккаунт!');
+    location.href = '/';
+  }
+
+  // Сначала скрываем всё
+  document.getElementById('favoritesList').style.display = 'none';
+  document.getElementById('emptyMessage').style.display = 'none';
+  document.getElementById('loadingMessage').style.display = 'block';
+
+  // Загружаем избранные
+  async function loadFavorites() {
+    try {
+      // Получаем список ID избранных фильмов
+      const response = await fetch('/api/favorites', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          alert('Сессия истекла. Пожалуйста, войдите снова.');
+          location.href = '/';
+          return;
+        }
+        throw new Error('Ошибка загрузки избранных');
+      }
+
+      const movieIds = await response.json();
+      
+      // Скрываем сообщение о загрузке
+      document.getElementById('loadingMessage').style.display = 'none';
+      
+      if (!movieIds || movieIds.length === 0) {
+        // Показываем сообщение, что избранных нет
+        document.getElementById('emptyMessage').style.display = 'block';
+        return;
+      }
+
+      // Загружаем информацию о каждом фильме
+      const moviesContainer = document.getElementById('favoritesList');
+      moviesContainer.style.display = 'grid';
+      moviesContainer.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#666;font-size:18px;">Загрузка фильмов...</p>';
+
+      const moviePromises = movieIds.map(movieId => 
+        fetch(`/api/movie/${movieId}`)
+          .then(res => res.ok ? res.json() : null)
+          .catch(() => null)
+      );
+
+      const movies = (await Promise.all(moviePromises)).filter(m => m !== null);
+      // После получения movies
+console.log('Загруженные фильмы:', movies);
+movies.forEach(m => {
+  console.log(`Фильм ${m.title}: vote_average=${m.vote_average}, тип=${typeof m.vote_average}`);
+});
+
+      if (movies.length === 0) {
+        document.getElementById('emptyMessage').style.display = 'block';
+        document.getElementById('favoritesList').style.display = 'none';
+        return;
+      }
+
+      // Отображаем фильмы
+      moviesContainer.innerHTML = movies.map(movie => {
+        const poster = movie.poster_path 
+          ? `/proxy-poster?path=${encodeURIComponent(movie.poster_path)}`
+          : 'https://via.placeholder.com/500x750/f5f5f5/666666?text=Нет+постера';
+
+        const year = movie.release_date ? movie.release_date.substring(0, 4) : movie.release_date || '—';
+        const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '—';
+
+        //передаем рейтинг в URL
+        const movieUrl = `/movie/${movie.id}?rating=${movie.vote_average || 0}`;
+
+        return `
+          <div class="movie" onclick="location.href='${movieUrl}'" style="cursor:pointer;position:relative;">
+            <img src="${poster}" 
+                 alt="${movie.title}" 
+                 style="width:100%;height:440px;object-fit:cover;border-radius:20px 20px 0 0;"
+                 onerror="this.src='https://via.placeholder.com/500x750/f5f5f5/666666?text=Ошибка+загрузки'">
+            <button class="favorite-btn active" 
+                    onclick="event.stopPropagation(); removeFromFavorites(${movie.id}, this)">
+              <i class="fas fa-heart"></i>
+            </button>
+            <div class="movie-info">
+              <h3>${movie.title || 'Без названия'}</h3>
+              <div class="rating">★ ${rating}</div>
+              <p><strong>${year}</strong></p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+    } catch (error) {
+      console.error('Ошибка загрузки избранных:', error);
+      document.getElementById('loadingMessage').style.display = 'none';
+      document.getElementById('emptyMessage').style.display = 'block';
+      document.getElementById('emptyMessage').innerHTML = `
+        <i class="fas fa-exclamation-triangle" style="color:#ff3b30;"></i>
+        <h2>Ошибка загрузки</h2>
+        <p>Не удалось загрузить ваши избранные фильмы. Попробуйте обновить страницу.</p>
+      `;
+    }
+  }
+
+  // Функция удаления из избранного
+  async function removeFromFavorites(movieId, button) {
+    // Показываем модальное окно 
+    const confirmModal = document.createElement('div');
+    confirmModal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      backdrop-filter: blur(5px);
+    `;
+    
+    confirmModal.innerHTML = `
+      <div style="
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      ">
+        <i class="fas fa-trash" style="font-size: 60px; color: #e91e63; margin-bottom: 20px;"></i>
+        <h2 style="color: #333; margin-bottom: 15px;">Удалить из избранного</h2>
+        <p style="color: #666; margin-bottom: 30px; line-height: 1.5;">
+          Вы уверены, что хотите удалить этот фильм из избранного?
+        </p>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+          <button id="cancelRemoveBtn" style="
+                    padding: 14px 30px;
+                    background: #f0f0f0;
+                    color: #333;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    font-weight: bold;
+                  ">
+            Отмена
+          </button>
+          <button id="confirmRemoveBtn" data-movieid="${movieId}" style="
+                    padding: 14px 30px;
+                    background: #e91e63;
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    font-weight: bold;
+                  ">
+            Удалить
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(confirmModal);
+    
+    // Обработчик отмены
+    document.getElementById('cancelRemoveBtn').addEventListener('click', function() {
+      confirmModal.remove();
+    });
+    
+    // Обработчик подтверждения
+    document.getElementById('confirmRemoveBtn').addEventListener('click', async function() {
+      const movieId = this.getAttribute('data-movieid');
+      confirmModal.remove();
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        location.href = '/';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ movieId })
+        });
+
+        if (!response.ok) {
+          throw new Error('Ошибка при удалении');
+        }
+
+        // Анимация удаления
+        const movieCard = button.closest('.movie');
+        movieCard.style.transition = 'all 0.4s';
+        movieCard.style.transform = 'scale(0.8)';
+        movieCard.style.opacity = '0';
+
+        setTimeout(() => {
+          movieCard.remove();
+          
+          // Проверяем, остались ли ещё фильмы
+          const remainingMovies = document.querySelectorAll('#favoritesList .movie').length;
+          if (remainingMovies === 0) {
+            document.getElementById('favoritesList').style.display = 'none';
+            document.getElementById('emptyMessage').style.display = 'block';
+          }
+        }, 400);
+
+      } catch (error) {
+        console.error('Ошибка удаления:', error);
+      }
+    });
+  }
+
+  // Загружаем избранные при загрузке страницы
+  document.addEventListener('DOMContentLoaded', loadFavorites);
+</script>
+</body>
+</html>

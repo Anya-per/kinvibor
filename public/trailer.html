@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>КиноВыбор — Трейлер</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .back-btn {
+      background: #ff8a00;
+      margin-bottom: 30px;
+      display: inline-block;
+    }
+    .trailer-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+      backdrop-filter: blur(10px);
+    }
+    .trailer-title {
+      font-size: 42px;
+      text-align: center;
+      margin-bottom: 40px;
+      background: linear-gradient(90deg,#ff3b30,#ff8a00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .trailer-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .trailer-iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .youtube-btn {
+      display: block;
+      margin: 40px auto 0;
+      background: #ff0000;
+      padding: 18px 40px;
+      font-size: 20px;
+      border-radius: 16px;
+      text-decoration: none;
+      color: white;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(255,0,0,0.3);
+    }
+    .youtube-btn i {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button onclick="history.back()" class="main-btn-big back-btn">
+      ← Назад к фильму
+    </button>
+
+    <div class="trailer-card">
+      <h1 id="title" class="trailer-title">Трейлер</h1>
+
+      <div class="trailer-container">
+        <iframe id="trailerIframe" class="trailer-iframe" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+      </div>
+
+      <!-- Кнопка на YouTube -->
+      <a id="youtubeLink" class="main-btn-big youtube-btn" target="_blank" style="display:none;">
+        <i class="fab fa-youtube"></i> Смотреть трейлер на YouTube
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const movieId = urlParams.get('id');
+    const movieTitle = decodeURIComponent(urlParams.get('title') || 'Трейлер');
+
+    document.title = `КиноВыбор — Трейлер: ${movieTitle}`;
+    document.getElementById('title').textContent = movieTitle;
+
+    // Берем официальный из TMDB
+    fetch(`/api/movie/${movieId}/videos`)
+      .then(r => r.json())
+      .then(data => {
+        const trailer = data.results.find(v => 
+          v.site === 'YouTube' && 
+          (v.type === 'Trailer' || v.type === 'Teaser')
+        );
+
+        if (trailer && trailer.key) {
+          document.getElementById('trailerIframe').src = `https://www.youtube.com/embed/${trailer.key}?rel=0&autoplay=0&controls=1&modestbranding=1`;
+        } else {
+          loadYouTubeSearch();
+        }
+      })
+      .catch(() => {
+        loadYouTubeSearch();
+      });
+
+    function loadYouTubeSearch() {
+      const searchQuery = encodeURIComponent(`${movieTitle} официальный трейлер русский`);
+      const embedUrl = `https://www.youtube.com/embed/videoseries?list=${searchQuery}&rel=0&autoplay=0&controls=1&modestbranding=1`;
+      document.getElementById('trailerIframe').src = embedUrl;
+
+      // Резервная кнопка на YouTube
+      const youtubeSearch = `https://www.youtube.com/results?search_query=${searchQuery}`;
+      const link = document.getElementById('youtubeLink');
+      link.href = youtubeSearch;
+      link.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
